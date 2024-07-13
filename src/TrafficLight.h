@@ -6,6 +6,9 @@
 #include <condition_variable>
 #include "TrafficObject.h"
 
+// Assuming TrafficLightPhase and MessageQueue are defined somewhere
+enum TrafficLightPhase { red, green };
+
 // forward declarations to avoid include cycle
 class Vehicle;
 
@@ -19,8 +22,14 @@ template <class T>
 class MessageQueue
 {
 public:
+    T receive();
+    void send(T &&msg);
 
 private:
+    std::mutex _mutex; // mutex for protecting access to the queue
+    std::deque<T> _queue; // queue to store the messages
+    std::condition_variable _cond; // condition variable for notifying waiting threads
+
     
 };
 
