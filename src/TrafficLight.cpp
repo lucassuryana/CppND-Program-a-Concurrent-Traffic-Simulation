@@ -60,8 +60,8 @@ TrafficLightPhase TrafficLight::getCurrentPhase()
 
 void TrafficLight::simulate()
 {
-    // FP.2b : Finally, the private method „cycleThroughPhases“ should be started in a thread when the public method 
-    // „simulate“ is called. To do this, use the thread queue in the base class. 
+    // FP.2b : Finally, the private method âcycleThroughPhasesâ should be started in a thread when the public method 
+    // âsimulateâ is called. To do this, use the thread queue in the base class. 
     threads.emplace_back(std::thread(&TrafficLight::cycleThroughPhases, this));
 
 }
@@ -76,25 +76,25 @@ void TrafficLight::cycleThroughPhases()
 
     std::random_device rd;
     std::mt19937 gen(rd()); // initialize random number generator
-    std::uniform_int_distribution<> dist(4000, 6000); // define the range of time between 4 and 6 seconds 
+    std::uniform_int_distribution<> distr(4000, 6000); // define the range of time between 4 and 6 seconds 
     
     while (true) 
     {
-        int cycle_duration = dist(gen); // randomly choose cycle duration between 4000 and 6000 milliseconds (4 and 6 seconds)
+        int cycle_duration = distr(gen); // randomly choose cycle duration between 4000 and 6000 milliseconds (4 and 6 seconds)
 
         auto startTime = std::chrono::system_clock::now(); // measure start time
 
         std::this_thread::sleep_for(std::chrono::milliseconds(cycle_duration));
 
-        {
-            std::lock_guard<std::mutex> lock(_mutex); // ensure thread-safe access
-            _currentPhase = (_currentPhase == TrafficLightPhase::red ? TrafficLightPhase::green : TrafficLightPhase::red); // Toggle phase to change the traffic light from red to green or vice versa
-        }
-
         auto endTime = std::chrono::system_clock::now(); // measure end time of cycle duration
         auto elapsedTime = std::chrono::system_clock::now() - startTime;
 
-        if (elapsedTime >= std::chrono::milliseconds(cycle_duration)) {
+        if (elapsedTime.count() >= cycle_duration) 
+        {
+            std::cout << "Elapsed time is greater than cycle duration" << std::endl;
+            std::lock_guard<std::mutex> lock(_mutex); // ensure thread-safe access
+            _currentPhase = (_currentPhase == TrafficLightPhase::red ? TrafficLightPhase::green : TrafficLightPhase::red); // Toggle phase to change the traffic light from red to green or vice versa
+
             _queue->send(std::move(_currentPhase));
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
